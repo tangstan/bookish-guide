@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            min-height: 100vh;
+            font-family: 'Noto Sans TC', sans-serif;
+            margin: 0;
+        }
+
+        .title {
+            text-align: center;
+            font-size: 2.8rem;
+            color: #2c3e50;
+            margin: 2rem 0;
+            letter-spacing: 2px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+            position: relative;
+            padding-bottom: 1rem;
+        }
+
+        .title::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120px;
+            height: 3px;
+            background: linear-gradient(90deg, #ff6b6b 0%, #ff8787 100%);
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 10px;
+            max-width: 720px;
+            margin: 2rem auto;
+            padding: 25px;
+            background: rgba(255,255,255,0.95);
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .number {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 80px;
+            border: 1px solid rgba(220,220,220,0.2);
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 1.4rem;
+            user-select: none;
+            background: rgba(255,255,255,0.9);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .number:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+        }
+
+        .number::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, 
+                rgba(255,255,255,0.4) 0%, 
+                rgba(255,255,255,0.1) 100%);
+            z-index: 1;
+        }
+
+        .count {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: rgba(108, 117, 125, 0.9);
+            background: rgba(255,255,255,0.85);
+            padding: 3px 8px;
+            border-radius: 14px;
+            z-index: 2;
+        }
+
+        .number span:not(.count) {
+            position: relative;
+            z-index: 2;
+            font-weight: 600;
+            color: #495057;
+            transition: color 0.3s;
+        }
+
+        #resetBtn {
+            display: block;
+            margin: 2rem auto;
+            padding: 14px 40px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            background: linear-gradient(135deg, #ff6b6b 0%, #ff8787 100%);
+            color: white;
+            border: none;
+            border-radius: 30px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(255,107,107,0.2);
+            letter-spacing: 1px;
+        }
+
+        #resetBtn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 12px rgba(255,107,107,0.3);
+            opacity: 0.95;
+        }
+    </style>
+</head>
+<body>
+    <h1 class="title">六合電腦大統計</h1>
+    <div class="container" id="container"></div>
+    <button id="resetBtn">重置所有紀錄</button>
+
+    <script>
+        const container = document.getElementById('container');
+        const clickCounts = {};
+        const maxClicks = 50;
+
+        // 创建数字元素
+        for (let i = 1; i <= 49; i++) {
+            const numElement = document.createElement('div');
+            numElement.className = 'number';
+            
+            // 点击次数显示
+            const countSpan = document.createElement('span');
+            countSpan.className = 'count';
+            countSpan.textContent = '0';
+            
+            // 主要数字显示
+            const numSpan = document.createElement('span');
+            numSpan.textContent = i;
+            
+            numElement.append(countSpan, numSpan);
+            clickCounts[i] = 0;
+
+            numElement.addEventListener('click', () => {
+                if (clickCounts[i] >= maxClicks) return;
+                clickCounts[i]++;
+                updateColor(numElement, clickCounts[i]);
+                countSpan.textContent = clickCounts[i];
+            });
+
+            container.appendChild(numElement);
+        }
+
+        function updateColor(element, count) {
+            let h = 0;
+            let s, l;
+
+            if (count <= 10) {
+                s = count * 5;
+                l = 100 - count;
+            } else if (count <= 20) {
+                const stage = count - 10;
+                s = 50 + stage * 5;
+                l = 90 - stage * 4;
+            } else if (count <= 30) {
+                const stage = count - 20;
+                l = 50 - stage * 2;
+                s = 100;
+            } else if (count <= 40) {
+                const stage = count - 30;
+                l = 30 - stage * 2;
+                s = 100;
+            } else {
+                const stage = count - 40;
+                l = 10 - stage;
+                s = 100;
+            }
+
+            s = Math.min(100, s);
+            l = Math.max(0, l);
+
+            element.style.backgroundColor = `hsl(${h}, ${s}%, ${l}%)`;
+            element.querySelector('span:not(.count)').style.color = l > 35 ? '#495057' : 'white';
+        }
+
+        document.getElementById('resetBtn').addEventListener('click', () => {
+            for (let i = 1; i <= 49; i++) {
+                clickCounts[i] = 0;
+                const element = container.children[i - 1];
+                element.style.backgroundColor = 'rgba(255,255,255,0.9)';
+                element.querySelector('span:not(.count)').style.color = '#495057';
+                element.querySelector('.count').textContent = '0';
+            }
+        });
+    </script>
+</body>
+</html>
